@@ -1,0 +1,4 @@
+region = "eu-central-1"
+bucket = "748457266642-prod-tfstate"
+key = "visualize-data/eu-central-1/terraform.tfstate"
+dynamodb_table = "748457266642-prod-tfstate-lock"

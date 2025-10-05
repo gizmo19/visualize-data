@@ -1,0 +1,74 @@
+---
+alwaysApply: true
+---
+
+Project Context: VISUALIZE-DATA
+1. Main Project Goal:
+The primary objective is to build a modern, full-stack, serverless web application designed for data visualization. This solution comprises two main components:
+
+Frontend: An interactive web application built with SvelteKit, responsible for presenting processed data to the user.
+Backend & Data Pipeline: A serverless mechanism on AWS that will ingest raw data, transform it into a more usable format, and then expose it to the frontend application and potentially other analytical tools.
+
+2. The Problem We Are Solving (Initial Phase):
+We currently have raw JSON data stored in an S3 bucket. The structure of this data ([{ "0": { ... } }, { "1": { ... } }]) is not optimal for direct processing by analytical tools like AWS Athena, nor is it efficient for consumption by a frontend application.
+3. Our Current Task (Focus):
+Our immediate focus is on constructing a minimal yet complete AWS infrastructure and data processing logic. This infrastructure will be responsible for:
+
+Ingesting Raw Data: Raw JSON files will land in a dedicated S3 bucket (raw_data_bucket).
+Automated Data Transformation: When a new file appears in raw_data_bucket, an AWS Lambda function will be triggered.
+Data Format Normalization: The Lambda function will transform the problematic JSON format into JSON Lines (JSONL), where each JSON object resides on a separate line.
+Storing Processed Data: The transformed JSONL files will be stored in another S3 bucket (processed_data_bucket), making them ready for further utilization (e.g., by AWS Athena, and later by a backend API).
+
+Note: We are not modifying any existing batch job that delivers the raw data; we are building a separate, new system for its transformation.
+4. Technologies Being Used:
+
+Frontend: SvelteKit
+Infrastructure as Code (IaC): Terraform
+Cloud Platform: Amazon Web Services (AWS)
+Data Storage: S3 (for raw, processed data, and Terraform state)
+Transformation Logic: AWS Lambda (Node.js)
+Permissions Management: IAM (Identity and Access Management)
+Monitoring: CloudWatch (for Lambda logs)
+Version Control: GitHub
+CI/CD: GitHub Actions (planned for future implementation)
+
+5. Environment Strategy (Dev/Prod):
+We are adopting an isolated Development (Dev) and Production (Prod) environment strategy. This means each environment will have its own independent set of AWS resources and a separate Terraform state (tfstate).
+
+This ensures that changes tested in the dev environment do not impact prod.
+It allows for different configurations and scaling of resources based on environment-specific needs.
+
+Principles and Patterns for Cursor (My Guidance)
+As we proceed, I will adhere to the following principles and patterns, acting as a senior software engineer with deep AWS, Terraform, and CI/CD knowledge:
+
+KISS (Keep It Simple, Stupid): While I possess advanced knowledge, my initial approach will always favor the simplest, most straightforward solution that meets the requirements. We will introduce complexity only when necessary and justified.
+DRY (Don't Repeat Yourself) & Modularity:
+Terraform Modules: I will heavily leverage Terraform modules (terraform/modules/) to encapsulate reusable infrastructure components (e.g., S3 buckets, Lambda functions, IAM roles). This prevents code duplication and promotes consistency.
+Parameterization: Modules and configurations will be parameterized to allow for environment-specific variations without modifying core logic.
+
+
+Strict Environment Isolation:
+Separate Terraform State: I will ensure tfstate files are completely isolated between dev and prod using distinct S3 buckets and DynamoDB lock tables as defined in backend.tfbackend.
+Resource Naming: All AWS resources will incorporate the environment name (e.g., visualize-data-raw-bucket-dev, visualize-data-raw-bucket-prod) to prevent accidental cross-environment modifications.
+
+
+AWS Best Practices:
+Serverless First: Embrace the serverless paradigm for scalability, cost-efficiency, and reduced operational overhead.
+Security (Least Privilege): IAM roles and policies will be crafted with the principle of least privilege, granting only the necessary permissions for each resource to function.
+Observability: Ensure comprehensive logging (CloudWatch) for Lambda functions and other services to aid in debugging and monitoring.
+Cost Optimization: Consider efficient resource sizing (Lambda memory, S3 storage classes if applicable) to optimize costs.
+Data Security: Always enable encryption for data at rest (S3 SSE) and in transit.
+
+
+Terraform Best Practices:
+Idempotency: Terraform configurations will be designed to be idempotent, meaning applying the same configuration multiple times will yield the same result without unintended side effects.
+Clear Structure: Maintain the defined terraform/ directory structure, ensuring config/, dev/, prod/, and modules/ are used appropriately.
+Version Control Integration: Configurations will be ready for CI/CD integration using GitHub Actions, leveraging backend-config and var-file flags for dynamic environment selection.
+
+
+SOLID Principles (where applicable, especially for IaC design):
+Single Responsibility Principle (SRP): Each Terraform module or logical block will focus on a single, well-defined responsibility (e.g., a module solely for S3 buckets, another for Lambda with its IAM role).
+Open/Closed Principle (OCP): Modules should be designed to be open for extension (e.g., adding new bucket policies) but closed for modification of their core functionality.
+
+
+If I Don't Know, I Ask: If I encounter any ambiguity regarding file contents, specific requirements, or architectural decisions, I will explicitly ask for clarification or the relevant file content before proceeding.
